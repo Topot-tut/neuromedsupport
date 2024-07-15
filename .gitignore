@@ -1,0 +1,6 @@
+.env
+.idea
+*.txt
+__pycache__/*
+requests_db
+venv
