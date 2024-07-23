@@ -2,7 +2,7 @@ from telegram import InlineKeyboardButton, InlineKeyboardMarkup, Message, BotCom
 from telegram import Update
 from telegram.constants import ParseMode
 from telegram.ext import ContextTypes
-
+from todoist_api_python.api import TodoistAPI
 
 # конвертирует объект user в строку
 def dialog_user_info_to_str(user) -> str:

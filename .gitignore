@@ -1,6 +1,6 @@
 .env
 .idea
 questions.txt
-__pycache__/*
+**/__pycache__/*
 requests_db
 venv
