@@ -46,7 +46,7 @@ async def send_next_request(update, context, user_id):
                 f"Вопрос: {task.description}\n"
             )
             user_id_in_task = task.content.split('(ID: ')[-1].split(')')[0]
-            user_telegram_link = f"https://t.me/{user_id_in_task}"
+            user_telegram_link = f"tg://user?id={user_id_in_task}"
 
             keyboard = [
                 [
