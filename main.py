@@ -1,4 +1,5 @@
 import smtplib
+from email.mime import application
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
@@ -7,8 +8,9 @@ from telegram.ext import ApplicationBuilder, CommandHandler, CallbackQueryHandle
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from config import AI_TOKEN, ADMIN_USERS_ID, ADMIN_EMAIL, todoist_api, SMTP_USER, SMTP_SERVER, SMTP_PORT, SMTP_PASSWORD
 from handlers.commands import start, view_requests
-from handlers.callbacks import start_button, button_callback_respond, button_callback_next_request
-from handlers.messages import handle_problem, handle_admin_response
+from handlers.callbacks import start_button, button_callback_respond, button_callback_next_request, \
+    button_callback_close_request, button_callback_rate
+from handlers.messages import handle_problem, handle_admin_response, handle_add_photo_response, handle_photo
 from scheduler import check_for_comments
 import logging
 import requests
@@ -143,14 +145,19 @@ scheduler.start()
 
 # Добавление обработчиков команд
 app.add_handler(CommandHandler("start", start))
-app.add_handler(CallbackQueryHandler(start_button, pattern='go'))
-app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_problem))
 app.add_handler(CommandHandler("view_requests", view_requests))
-app.add_handler(CallbackQueryHandler(button_callback_respond, pattern=r'^respond_'))
-app.add_handler(CallbackQueryHandler(button_callback_next_request, pattern='next_request'))
-app.add_handler(CommandHandler("admins", admins))  # Обработчик для команды /admins
-app.add_handler(CallbackQueryHandler(button_callback_collect_stats, pattern="collect_stats"))
-app.add_handler(MessageHandler(filters.TEXT & filters.User(user_id=ADMIN_USERS_ID), handle_admin_response))
+app.add_handler(CommandHandler("admins", admins))
+app.add_handler(CallbackQueryHandler(start_button, pattern="^go$"))
+app.add_handler(CallbackQueryHandler(button_callback_respond, pattern="^respond_"))
+app.add_handler(CallbackQueryHandler(button_callback_next_request, pattern="^next_request$"))
+app.add_handler(CallbackQueryHandler(button_callback_close_request, pattern="^close_"))
+app.add_handler(CallbackQueryHandler(button_callback_rate, pattern="^rate_"))
+app.add_handler(CallbackQueryHandler(handle_add_photo_response, pattern="^add_photo_"))
+app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_problem))
+app.add_handler(MessageHandler(filters.PHOTO & ~filters.COMMAND, handle_photo))
+app.add_handler(CallbackQueryHandler(button_callback_close_request, pattern="^close_"))
+app.add_handler(CallbackQueryHandler(button_callback_rate, pattern="^rate_"))
+
 
 # Запуск приложения
 logger.info("Running bot polling...")

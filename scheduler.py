@@ -8,7 +8,6 @@ todoist_api = TodoistAPI(TODOIST_API_TOKEN)
 logger = logging.getLogger(__name__)
 last_checked = datetime.datetime.utcnow()
 
-
 async def check_for_comments(context):
     global last_checked
     try:
@@ -29,8 +28,14 @@ async def check_for_comments(context):
                     logger.info(f"New comment found: {comment.content}")
                     user_id_in_task = task.content.split('(ID: ')[-1].split(')')[0]
                     logger.info(f"Sending comment to user {user_id_in_task}")
-                    await context.bot.send_message(chat_id=user_id_in_task,
-                                                   text=f"Ответ по вашему запросу: {comment.content}")
+
+                    # Игнорирование комментариев, содержащих фото, добавленных пользователем
+                    if comment.content.startswith("Фото file_id:"):
+                        logger.info("Ignoring photo comment added by user")
+                        continue
+                    else:
+                        await context.bot.send_message(chat_id=user_id_in_task, text=f"Ответ по вашему запросу: {comment.content}")
+
         last_checked = datetime.datetime.utcnow()
     except Exception as e:
         logger.error(f"Error checking comments: {e}")

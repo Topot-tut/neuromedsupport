@@ -32,6 +32,7 @@ async def view_requests(update, context):
 
 async def send_next_request(update, context, user_id):
     try:
+        logger.info("Fetching tasks from Todoist")
         tasks = todoist_api.get_tasks()
         position = admin_positions.get(user_id, 0)
 
@@ -45,8 +46,16 @@ async def send_next_request(update, context, user_id):
                 f"Пользователь: {task.content}\n"
                 f"Вопрос: {task.description}\n"
             )
+            comments = todoist_api.get_comments(task_id=task.id)
+            photo_file_id = None
+            for comment in comments:
+                if comment.content.startswith("Фото file_id:"):
+                    photo_file_id = comment.content.split("Фото file_id: ")[-1]
+                    logger.info(f"Photo file_id found in comments: {photo_file_id}")
+
             user_id_in_task = task.content.split('(ID: ')[-1].split(')')[0]
             user_telegram_link = f"tg://user?id={user_id_in_task}"
+            logger.info(f"User Telegram link: {user_telegram_link}")
 
             keyboard = [
                 [
@@ -57,7 +66,12 @@ async def send_next_request(update, context, user_id):
             ]
             reply_markup = InlineKeyboardMarkup(keyboard)
 
-            await context.bot.send_message(chat_id=update.message.chat_id, text=response_message, reply_markup=reply_markup)
+            if photo_file_id:
+                logger.info("Sending task with photo")
+                await context.bot.send_photo(chat_id=update.message.chat_id, photo=photo_file_id, caption=response_message, reply_markup=reply_markup)
+            else:
+                logger.info("Sending task without photo")
+                await context.bot.send_message(chat_id=update.message.chat_id, text=response_message, reply_markup=reply_markup)
         else:
             await context.bot.send_message(chat_id=update.message.chat_id, text="Больше нет заявок.")
         admin_positions[user_id] += 1
